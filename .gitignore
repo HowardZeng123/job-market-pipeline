@@ -17,7 +17,7 @@ __pycache__/
 dbt_job_market/target/
 dbt_job_market/dbt_packages/
 dbt_job_market/logs/
-dbt_job_market/profiles.yml
+!dbt_job_market/profiles.yml
 
 .vscode/
 .DS_Store
