@@ -1,0 +1,54 @@
+name: Job Market Pipeline
+
+on:
+  schedule:
+    # Chạy tự động lúc 00:00 mỗi ngày (giờ UTC)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Cho phép bro bấm nút "Run" thủ công để test
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install dbt-postgres
+
+      - name: Run Crawlers
+        env:
+          DB_CONN: ${{ secrets.DB_CONN }}
+          ITVIEC_COOKIE: ${{ secrets.ITVIEC_COOKIE }}
+        run: |
+          python crawler/itviec_crawler.py
+          python crawler/vnworks_crawler.py
+          python crawler/topcv_crawler.py
+          python crawler/joboko_crawler.py
+          python crawler/linkedin_crawler.py
+
+      - name: Run dbt
+        env:
+          # Truyền các biến để dbt kết nối được vào Supabase
+          DBT_HOST: ${{ secrets.DBT_HOST }} # # Tên bên trái là cái code dbt dùng, bên phải là tên trên GitHub
+          DBT_USER: ${{ secrets.DBT_USER }}
+          DBT_PASS: ${{ secrets.SUPABASE_PASSWORD }}
+        run: |
+          cd dbt_job_market
+          # Mình sẽ dùng lệnh này để dbt tự tạo profile từ biến môi trường
+          dbt run --profiles-dir . --target dev
+      - name: Send Discord Alerts
+        env:
+          DB_CONN: ${{ secrets.DB_CONN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }} # Nhớ tạo Secret này trên Github nha
+        run: |
+          python alert_bot.py
