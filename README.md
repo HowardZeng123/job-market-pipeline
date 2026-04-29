@@ -8,6 +8,8 @@ Sources -> Crawlers (Python) -> raw_jobs (Postgres/Supabase)
     -> dbt staging (dedup + clean) -> dbt mart (salary parsing)
     -> Discord alert bot
 
+<img width="2360" height="660" alt="Untitled-2026-04-25-2046" src="https://github.com/user-attachments/assets/cd20fcfc-1ed7-419a-8aad-6fe7f79bef13" />
+
 ## Tech Stack
 
 - Python (requests, psycopg, dotenv)
