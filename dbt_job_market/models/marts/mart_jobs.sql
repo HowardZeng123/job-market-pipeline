@@ -1,10 +1,15 @@
 {{ config(
-    materialized='table'
+    materialized='incremental',
+    unique_key='job_id',
+    on_schema_change='sync_all_columns'
 ) }}
 
 with staging as (
     -- Lấy data từ lớp Silver (dùng ref thay vì source)
     select * from {{ ref('stg_jobs') }}
+    {% if is_incremental() %}
+    where ingested_at > (select coalesce(max(ingested_at), '1900-01-01') from {{ this }})
+    {% endif %}
 ),
 
 extracted_numbers as (
